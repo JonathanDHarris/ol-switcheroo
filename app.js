@@ -41,6 +41,8 @@ const renderComments = (comments, depth=1) => {
 }
 
 const renderPosts = posts => {
+	const lastPost = posts[posts.length-1];
+	const {subredditLink, name} = lastPost;
 
 	let html = `<ul>`
 	posts.forEach(post => {
@@ -48,6 +50,8 @@ const renderPosts = posts => {
 	})
 	
 	html += `</ul>`
+	
+	html += `<a href=?subreddit=${subredditLink}&after=${name}>More</a>`;
 	return html;
 }
 
@@ -68,10 +72,9 @@ const MAIN = `https://www.reddit.com/`
 
 const maxCommentDepth = 5;
 
-const fetchUrl = async(url, subreddit, limit, after) => {
-	const fetchLimit = limit ? limmit : 10;
+const fetchUrl = async(url, subreddit, after) => {
 	const fetchAfter = after ? after : 0;
-	const fetchUrl = `${url}${subreddit}.json?limit=${fetchLimit}&after=${fetchAfter}`;
+	const fetchUrl = `${url}${subreddit}.json?after=${fetchAfter}`;
 	console.log(`Fetching ${fetchUrl}`);
 	const response = await fetch(fetchUrl);
 	const responseJson = await response.json();
@@ -89,7 +92,7 @@ const fetchComments = async(commentUrl) => {
 app.get('/', asyncMiddleware(async (req, res) => {
 	const subreddit = req.query.subreddit && req.query.subreddit !== 'front_page' ? `r/${req.query.subreddit}` : '';
 	const subredditLink = req.query.subreddit ? `${req.query.subreddit}` : 'front_page';
-	const responseJson = await fetchUrl(MAIN, subreddit);
+	const responseJson = await fetchUrl(MAIN, subreddit, req.query.after);
 	
 	const children = responseJson.data.children;
 	
@@ -99,7 +102,8 @@ app.get('/', asyncMiddleware(async (req, res) => {
 			subredditLink: subredditLink,
 			title: child.data.title,
 			comments: child.data.permalink,
-			url: child.data.url
+			url: child.data.url,
+			name: child.data.name
 		}
 	})
 	
