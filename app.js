@@ -14,7 +14,7 @@ const createPage = (posts, comments) => {
 }
 
 const createBody = (posts, comments) => {
-	return `<body><table><td valign="top " style="width:50%">${renderPosts(posts)}</td><td valign="bottom">${renderComments(comments)}</td></table></body>`
+	return `<body><table><td valign="top" style="width:50%">${renderPosts(posts)}</td><td valign="top">${renderComments(comments)}</td></table></body>`
 }
 
 const renderComments = (comments, depth=1) => {
@@ -25,10 +25,13 @@ const renderComments = (comments, depth=1) => {
 	const margin = parseInt(depth, 10) * 10;
 	let html = `<div style="margin-left:${margin}px">`;
 
-	comments.forEach(comment => {
+	comments.forEach((comment, index) => {
+		const backgroundColor = index % 2 === 0 ? `lightgrey` : `lightslategrey`
+		html += `<div style="background-color:${backgroundColor}">`
 		html += '' + unescape(comment.data.body_html)
 		html += `<i>${comment.data.author}</i>`
 		html += `</br>`
+		html += `</div>`
 		if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) {
 			const replies = renderComments(comment.data.replies.data.children, depth+1);
 			html += replies;
@@ -63,7 +66,9 @@ const renderPost = post => {
 		html += `<span>${post.subreddit}</span>`
 	}
 	html += `</br>`
-	html += `<a href=?subreddit=${post.subredditLink}&comments=${post.comments}>comments</a>`
+	html += post.numComments
+		? `<a href=?subreddit=${post.subredditLink}&comments=${post.comments}>${post.numComments} comments</a>`
+		: `No Comments`
 	html += `</li>`
 	return html;
 }
@@ -102,6 +107,7 @@ app.get('/', asyncMiddleware(async (req, res) => {
 			subredditLink: subredditLink,
 			title: child.data.title,
 			comments: child.data.permalink,
+			numComments: child.data.num_comments,
 			url: child.data.url,
 			name: child.data.name
 		}
