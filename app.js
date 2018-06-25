@@ -7,6 +7,7 @@ const asyncMiddleware = fn =>
     Promise.resolve(fn(req, res, next))
       .catch(next);
   };
+  
 
 const MAIN = `https://www.reddit.com/`
 
@@ -22,8 +23,19 @@ const fetchUrl = async(url, limit, after) => {
 
 app.get('/', asyncMiddleware(async (req, res) => {
 	const responseJson = await fetchUrl(MAIN);
-	console.log(responseJson);
-	res.send(responseJson);
+	// console.log(responseJson);
+	
+	const children = responseJson.data.children;
+	
+	const posts = children.map(child => {
+		return {
+			subreddit: child.data.subreddit,
+			title: child.data.title,
+			comments: child.data.permalink,
+			url: child.data.url
+		}
+	})
+	res.send(posts);
 }))
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
