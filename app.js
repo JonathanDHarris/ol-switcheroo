@@ -59,7 +59,7 @@ const renderPost = post => {
 		html += `<span>${post.subreddit}</span>`
 	}
 	html += `</br>`
-	html += `<a href=?subreddit=${post.subreddit}&comments=${post.comments}>comments</a>`
+	html += `<a href=?subreddit=${post.subredditLink}&comments=${post.comments}>comments</a>`
 	html += `</li>`
 	return html;
 }
@@ -87,7 +87,8 @@ const fetchComments = async(commentUrl) => {
 }
 
 app.get('/', asyncMiddleware(async (req, res) => {
-	const subreddit = req.query.subreddit ? `r/${req.query.subreddit}` : '';
+	const subreddit = req.query.subreddit && req.query.subreddit !== 'front_page' ? `r/${req.query.subreddit}` : '';
+	const subredditLink = req.query.subreddit ? `${req.query.subreddit}` : 'front_page';
 	const responseJson = await fetchUrl(MAIN, subreddit);
 	
 	const children = responseJson.data.children;
@@ -95,6 +96,7 @@ app.get('/', asyncMiddleware(async (req, res) => {
 	const posts = children.map(child => {
 		return {
 			subreddit: child.data.subreddit,
+			subredditLink: subredditLink,
 			title: child.data.title,
 			comments: child.data.permalink,
 			url: child.data.url
