@@ -37,11 +37,12 @@ const renderComments = (comments, depth=1) => {
 	let html = `<div style="margin-left:${margin}px">`;
 
 	comments.forEach((comment, index) => {
-		const backgroundColor = index % 2 === 0 ? `lightgrey` : `lightslategrey`
-		html += `<div style="background-color:${backgroundColor}" id="comment_${comment.data.id}" onClick="event.stopPropagation(); toggleComment('${comment.data.id}')">`
+		const backgroundColor = (index + depth) % 2 === 0 ? `lightgrey` : `lightslategrey`
+		html += `<div id="comment_${comment.data.id}" onClick="event.stopPropagation(); toggleComment('${comment.data.id}')">`
+		html += `<div style="background-color:${backgroundColor}">`
 		html += '' + unescape(comment.data.body_html)
 		html += `<i>${comment.data.author}</i>`
-		html += `</br>`
+		html += `</div>`
 		if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) {
 			const replies = renderComments(comment.data.replies.data.children, depth+1);
 			html += replies;
