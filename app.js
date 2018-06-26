@@ -21,7 +21,11 @@ const createPage = (posts, comments) => {
 }
 
 const createBody = (posts, comments) => {
-	return `<body><table><td valign="top" style="width:50%">${renderPosts(posts)}</td><td valign="top">${renderComments(comments)}</td></table></body>`
+	let html = `<body>`
+	html += `<form action="/" method="GET"><input type="text" name="subreddit" id="subreddit-bar" value="" style="width: 50%;" autofocus /><br/></form>`
+	html += `<table><td valign="top" style="width:50%">${renderPosts(posts)}</td><td valign="top">${renderComments(comments)}</td></table>`
+	html += `</body>`
+	return html;
 }
 
 const renderComments = (comments, depth=1) => {
