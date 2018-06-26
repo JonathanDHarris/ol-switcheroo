@@ -12,19 +12,26 @@ const asyncMiddleware = fn =>
       .catch(next);
   };
   
-const createPage = (posts, comments) => {
+const createPage = (posts, selfText, comments) => {
 	let html = `<head>`
 	html += `<script src=${PROTOCOL}://${SERVER_EXTERNAL_ADDRESS}/static/scripts/toggleComment.js></script>`
 	html += `</head>`
-	html += `${createBody(posts, comments)}`
+	html += `${createBody(posts, selfText, comments)}`
 	return html
 }
 
-const createBody = (posts, comments) => {
+const createBody = (posts, selfText, comments) => {
 	let html = `<body>`
 	html += `<form action="/" method="GET"><input type="text" name="subreddit" id="subreddit-bar" value="" style="width: 50%;" autofocus /><br/></form>`
-	html += `<table><td valign="top" style="width:50%">${renderPosts(posts)}</td><td valign="top">${renderComments(comments)}</td></table>`
+html += `<table><td valign="top" style="width:50%">${renderPosts(posts)}</td><td valign="top">${renderSelfText(selfText)}${renderComments( comments)}</td></table>`
 	html += `</body>`
+	return html;
+}
+
+const renderSelfText = selfText => {
+	html = `<div>`
+	html += unescape(selfText);
+	html += `</div>`
 	return html;
 }
 
@@ -93,7 +100,6 @@ const maxCommentDepth = 5;
 const fetchUrl = async(url, subreddit, after) => {
 	const fetchAfter = after ? after : 0;
 	const fetchUrl = `${url}${subreddit}.json?after=${fetchAfter}`;
-	console.log(`Fetching ${fetchUrl}`);
 	const response = await fetch(fetchUrl);
 	const responseJson = await response.json();
 	return responseJson;
@@ -101,7 +107,6 @@ const fetchUrl = async(url, subreddit, after) => {
 
 const fetchComments = async(commentUrl) => {
 	const fetchUrl = `${MAIN}${commentUrl}.json`;
-	console.log(`Fetching ${fetchUrl}`);
 	const response = await fetch(fetchUrl);
 	const responseJson = await response.json();
 	return responseJson;
@@ -133,7 +138,12 @@ app.get('/', asyncMiddleware(async (req, res) => {
 	const comments = commentsJson
 		? commentsJson[1].data.children
 		: null
-	res.send(createPage(posts, comments));
+		
+	const selfText = commentsJson
+		? commentsJson[0].data.children[0].data.selftext_html
+		: null
+				
+	res.send(createPage(posts, selfText, comments));
 }))
 
 app.get('/static/scripts/toggleComment.js', (req, res) => {
