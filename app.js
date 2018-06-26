@@ -30,7 +30,7 @@ const createBody = (posts, comments) => {
 
 const renderComments = (comments, depth=1) => {
 	if (!comments || depth > maxCommentDepth) {
-		return;
+		return `<div></div>`;
 	}
 	
 	const margin = parseInt(depth, 10) * 10;
@@ -38,16 +38,16 @@ const renderComments = (comments, depth=1) => {
 
 	comments.forEach((comment, index) => {
 		const backgroundColor = index % 2 === 0 ? `lightgrey` : `lightslategrey`
-		html += `<div style="background-color:${backgroundColor}" id="comment_${comment.data.id}" onClick="toggleComment('${comment.data.id}')">`
+		html += `<div style="background-color:${backgroundColor}" id="comment_${comment.data.id}" onClick="event.stopPropagation(); toggleComment('${comment.data.id}')">`
 		html += '' + unescape(comment.data.body_html)
 		html += `<i>${comment.data.author}</i>`
 		html += `</br>`
-		html += `</div>`
-		html += `<div style="background-color:${backgroundColor}; display:none" id="show_${comment.data.id}" onClick="toggleComment('${comment.data.id}')">Show comment</div>`
 		if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) {
 			const replies = renderComments(comment.data.replies.data.children, depth+1);
 			html += replies;
 		}
+		html += `</div>`
+		html += `<div style="background-color:${backgroundColor}; display:none" id="show_${comment.data.id}" onClick="event.stopPropagation(); toggleComment('${comment.data.id}')">Show comment</div>`
 	})
 
 	html += `</div>`
