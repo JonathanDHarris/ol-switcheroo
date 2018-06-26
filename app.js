@@ -3,6 +3,9 @@ const fetch = require('isomorphic-fetch')
 const unescape = require('unescape')
 const app = express()
 
+const PROTOCOL = `http`
+const SERVER_EXTERNAL_ADDRESS = `localhost:3000`
+
 const asyncMiddleware = fn =>
   (req, res, next) => {
     Promise.resolve(fn(req, res, next))
@@ -10,7 +13,11 @@ const asyncMiddleware = fn =>
   };
   
 const createPage = (posts, comments) => {
-	return `<head>${createBody(posts, comments)}</head>`
+	let html = `<head>`
+	html += `<script src=${PROTOCOL}://${SERVER_EXTERNAL_ADDRESS}/static/scripts/toggleComment.js></script>`
+	html += `</head>`
+	html += `${createBody(posts, comments)}`
+	return html
 }
 
 const createBody = (posts, comments) => {
@@ -27,11 +34,12 @@ const renderComments = (comments, depth=1) => {
 
 	comments.forEach((comment, index) => {
 		const backgroundColor = index % 2 === 0 ? `lightgrey` : `lightslategrey`
-		html += `<div style="background-color:${backgroundColor}">`
+		html += `<div style="background-color:${backgroundColor}" id="comment_${comment.data.id}" onClick="toggleComment('${comment.data.id}')">`
 		html += '' + unescape(comment.data.body_html)
 		html += `<i>${comment.data.author}</i>`
 		html += `</br>`
 		html += `</div>`
+		html += `<div style="background-color:${backgroundColor}; display:none" id="show_${comment.data.id}" onClick="toggleComment('${comment.data.id}')">Show comment</div>`
 		if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) {
 			const replies = renderComments(comment.data.replies.data.children, depth+1);
 			html += replies;
@@ -122,5 +130,10 @@ app.get('/', asyncMiddleware(async (req, res) => {
 		: null
 	res.send(createPage(posts, comments));
 }))
+
+app.get('/static/scripts/toggleComment.js', (req, res) => {
+	const fileName = `${__dirname}/static/scripts/toggleComment.js`
+	res.sendFile(fileName);
+})
 
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
