@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+			<script src=<%= protocol %>://<%= serverExternalAddress %>/static/scripts/toggleComment.js></script>
+	</head>
+
+	<body class="container">	
+		<% renderComments = (comments, navigationData, depth=1) => { %>
+			<% if (comments && depth <= maxCommentDepth) { %>
+				<% margin = parseInt(depth, 10) * 10; %>
+				<div style="margin-left:<%= margin %>px">
+					<% comments.forEach((comment, index) => { %>
+						<% backgroundColor = (index + depth) % 2 === 0 ? `lightgrey` : `#a5c8ea` %>
+						
+						<% if (comment.kind !== 'more') { %>
+							<div id="comment_<%= comment.data.id %>" onClick="event.stopPropagation(); toggleComment('<%= comment.data.id %>')">
+							<div style="background-color:<%= backgroundColor %>">
+							<%- comment.data.body_html %>
+
+							<i><%= comment.data.author %></i>
+							</div>
+							<% if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) { %>
+								<% renderComments(comment.data.replies.data.children, navigationData, depth+1) %>
+							<% } %>
+							</div>
+							<div style="background-color:<%= backgroundColor %>; display:none" id="show_<%= comment.data.id %>" onClick="event.stopPropagation(); toggleComment('<%= comment.data.id %>')">Show comment</div>
+						<% } %>
+					<% }) %>
+				</div>
+			<% } %>
+		<% } %>
+
+		<form action="/" method="GET">
+			<input type="text" name="subreddit" id="subreddit-bar" value="" style="width: 50%;" placeholder="Enter a subreddit..." autofocus />
+			<br/>
+		</form>
+		<table>
+			<td valign="top" style="width:50%">
+				<ul>
+					<% posts.forEach(function(post) { %>
+						<li style="margin-bottom:10px">
+							<b><a href="<%= post.url %>"> <%= post.title %> </a></b>
+							<%if (post.subreddit) { %>
+								</br>
+								<span><%= post.subreddit %></span>
+							<% } %>
+							</br>
+							<%if (post.numComments) { %>
+								<a href=?subreddit=<%=subredditLink %>&after=<%= after %>&comments=<%= post.comments%>>
+									<%= post.numComments %> comments
+								</a>
+							<% } else {%>
+								<span>No Comments</span>
+							<% } %>
+							</br>
+						</li>
+					<% }); %>
+					<a href=?subreddit=<%= subredditLink %>&after=<%= lastPostName %>>More</a>
+				</ul>
+			</td>
+			<td valign="top">
+				<%- selfText %>
+				<% renderComments(comments, navigationData) %>
+			</td>
+		</table>
+	</body>`
+</html>

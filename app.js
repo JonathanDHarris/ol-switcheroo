@@ -1,8 +1,9 @@
 const express = require('express');
 const fetch = require('isomorphic-fetch');
 const app = express();
+const unescape = require('unescape');
 
-const createPage = require('./create-page');
+app.set('view engine', 'ejs');
 
 const asyncMiddleware = fn =>
   (req, res, next) => {
@@ -10,7 +11,17 @@ const asyncMiddleware = fn =>
       .catch(next);
   };
   
-const MAIN = `https://www.reddit.com/`
+const unescapeHtml = comments => {
+	comments.forEach((comment) => {
+		comment.data.body_html = unescape(comment.data.body_html);
+		if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) {
+			unescapeHtml(comment.data.replies.data.children);
+		}
+	});
+};
+  
+const MAIN = `https://www.reddit.com/`;
+const maxCommentDepth = 5;
 
 const fetchUrl = async(url, subreddit, after) => {
 	const fetchAfter = after ? after : 0;
@@ -59,13 +70,30 @@ app.get('/', asyncMiddleware(async (req, res) => {
 		
 	const comments = commentsJson
 		? commentsJson[1].data.children
-		: null
+		: []
 		
 	const selfText = commentsJson
 		? commentsJson[0].data.children[0].data.selftext_html
 		: null
-				
-	res.send(createPage.createPage(posts, selfText, comments, navigationData));
+		
+	unescapeHtml(comments);
+	
+	const lastPostName = posts[posts.length-1].name;
+	
+	templateData = {
+		protocol: 'http',
+		serverExternalAddress: 'localhost:3000',
+		posts,
+		subredditLink,
+		after,
+		selfText: unescape(selfText),
+		comments,
+		navigationData,
+		maxCommentDepth,
+		lastPostName
+	}
+		
+	res.render('pages/index', templateData);
 }))
 
 app.get('/static/scripts/toggleComment.js', (req, res) => {
