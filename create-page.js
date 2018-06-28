@@ -5,19 +5,19 @@ const SERVER_EXTERNAL_ADDRESS = `localhost:3000`;
 const maxCommentDepth = 5;
 
 module.exports = {
-	createPage: (posts, selfText, comments) => {
+	createPage: (posts, selfText, comments, navigationData) => {
 		let html = `<head>`
 		html += `<script src=${PROTOCOL}://${SERVER_EXTERNAL_ADDRESS}/static/scripts/toggleComment.js></script>`
 		html += `</head>`
-		html += `${createBody(posts, selfText, comments)}`
+		html += `${createBody(posts, selfText, comments, navigationData)}`
 		return html
 	}
 }
 
-const createBody = (posts, selfText, comments) => {
+const createBody = (posts, selfText, comments, navigationData) => {
 	let html = `<body>`
 	html += `<form action="/" method="GET"><input type="text" name="subreddit" id="subreddit-bar" value="" style="width: 50%;" autofocus /><br/></form>`
-html += `<table><td valign="top" style="width:50%">${renderPosts(posts)}</td><td valign="top">${renderSelfText(selfText)}${renderComments( comments)}</td></table>`
+	html += `<table><td valign="top" style="width:50%">${renderPosts(posts, navigationData)}</td><td valign="top">${renderSelfText(selfText)}${renderComments( comments, navigationData)}</td></table>`
 	html += `</body>`
 	return html;
 }
@@ -29,7 +29,7 @@ const renderSelfText = selfText => {
 	return html;
 }
 
-const renderComments = (comments, depth=1) => {
+const renderComments = (comments, navigationData, depth=1) => {
 	if (!comments || depth > maxCommentDepth) {
 		return `<div></div>`;
 	}
@@ -45,7 +45,7 @@ const renderComments = (comments, depth=1) => {
 		html += `<i>${comment.data.author}</i>`
 		html += `</div>`
 		if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) {
-			const replies = renderComments(comment.data.replies.data.children, depth+1);
+			const replies = renderComments(comment.data.replies.data.children, navigationData, depth+1);
 			html += replies;
 		}
 		html += `</div>`
@@ -57,13 +57,14 @@ const renderComments = (comments, depth=1) => {
 	return html;
 }
 
-const renderPosts = posts => {
+const renderPosts = (posts, navigationData) => {
 	const lastPost = posts[posts.length-1];
-	const {subredditLink, name} = lastPost;
+	const {name} = lastPost;
+	const { subredditLink } = navigationData;
 
 	let html = `<ul>`
 	posts.forEach(post => {
-		html += renderPost(post)
+		html += renderPost(post, navigationData)
 	})
 	
 	html += `</ul>`
@@ -72,7 +73,9 @@ const renderPosts = posts => {
 	return html;
 }
 
-const renderPost = post => {
+const renderPost = (post, navigationData) => {
+	const { after, subredditLink } = navigationData;
+	
 	let html = `<li>`
 	html += `<b><a href=${post.url}>${post.title}</a></b>`
 	if (post.subreddit) {
@@ -81,7 +84,7 @@ const renderPost = post => {
 	}
 	html += `</br>`
 	html += post.numComments
-		? `<a href=?subreddit=${post.subredditLink}&comments=${post.comments}>${post.numComments} comments</a>`
+		? `<a href=?subreddit=${subredditLink}&after=${after}&comments=${post.comments}>${post.numComments} comments</a>`
 		: `No Comments`
 	html += `</li>`
 	return html;

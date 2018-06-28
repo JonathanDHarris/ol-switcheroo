@@ -30,7 +30,13 @@ const fetchComments = async(commentUrl) => {
 app.get('/', asyncMiddleware(async (req, res) => {
 	const subreddit = req.query.subreddit && req.query.subreddit !== 'front_page' ? `r/${req.query.subreddit}` : '';
 	const subredditLink = req.query.subreddit ? `${req.query.subreddit}` : 'front_page';
-	const responseJson = await fetchUrl(MAIN, subreddit, req.query.after);
+	const after = req.query.after ? req.query.after : '';
+	const responseJson = await fetchUrl(MAIN, subreddit, after);
+	
+	const navigationData = {
+		subredditLink,
+		after
+	}
 	
 	const children = responseJson.data.children;
 	
@@ -58,7 +64,7 @@ app.get('/', asyncMiddleware(async (req, res) => {
 		? commentsJson[0].data.children[0].data.selftext_html
 		: null
 				
-	res.send(createPage.createPage(posts, selfText, comments));
+	res.send(createPage.createPage(posts, selfText, comments, navigationData));
 }))
 
 app.get('/static/scripts/toggleComment.js', (req, res) => {
