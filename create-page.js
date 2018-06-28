@@ -17,7 +17,7 @@ module.exports = {
 const createBody = (posts, selfText, comments, navigationData) => {
 	let html = `<body>`
 	html += `<form action="/" method="GET"><input type="text" name="subreddit" id="subreddit-bar" value="" style="width: 50%;" autofocus /><br/></form>`
-	html += `<table><td valign="top" style="width:50%">${renderPosts(posts, navigationData)}</td><td valign="top">${renderSelfText(selfText)}${renderComments( comments, navigationData)}</td></table>`
+	html += `<table><td valign="top" style="width:50%">${renderPosts(posts, navigationData)}</td><td valign="top">${renderSelfText(selfText)}${renderComments(comments, navigationData)}</td></table>`
 	html += `</body>`
 	return html;
 }
@@ -30,6 +30,7 @@ const renderSelfText = selfText => {
 }
 
 const renderComments = (comments, navigationData, depth=1) => {
+	const { after, subredditLink, commentLink } = navigationData;
 	if (!comments || depth > maxCommentDepth) {
 		return `<div></div>`;
 	}
@@ -38,18 +39,21 @@ const renderComments = (comments, navigationData, depth=1) => {
 	let html = `<div style="margin-left:${margin}px">`;
 
 	comments.forEach((comment, index) => {
-		const backgroundColor = (index + depth) % 2 === 0 ? `lightgrey` : `lightslategrey`
-		html += `<div id="comment_${comment.data.id}" onClick="event.stopPropagation(); toggleComment('${comment.data.id}')">`
-		html += `<div style="background-color:${backgroundColor}">`
-		html += '' + unescape(comment.data.body_html)
-		html += `<i>${comment.data.author}</i>`
-		html += `</div>`
-		if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) {
-			const replies = renderComments(comment.data.replies.data.children, navigationData, depth+1);
-			html += replies;
+		const backgroundColor = (index + depth) % 2 === 0 ? `lightgrey` : `lightslategrey`;
+		
+		if (comment.kind !== 'more') {
+			html += `<div id="comment_${comment.data.id}" onClick="event.stopPropagation(); toggleComment('${comment.data.id}')">`
+			html += `<div style="background-color:${backgroundColor}">`
+			html += '' + unescape(comment.data.body_html)
+			html += `<i>${comment.data.author}</i>`
+			html += `</div>`
+			if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) {
+				const replies = renderComments(comment.data.replies.data.children, navigationData, depth+1);
+				html += replies;
+			}
+			html += `</div>`
+			html += `<div style="background-color:${backgroundColor}; display:none" id="show_${comment.data.id}" onClick="event.stopPropagation(); toggleComment('${comment.data.id}')">Show comment</div>`
 		}
-		html += `</div>`
-		html += `<div style="background-color:${backgroundColor}; display:none" id="show_${comment.data.id}" onClick="event.stopPropagation(); toggleComment('${comment.data.id}')">Show comment</div>`
 	})
 
 	html += `</div>`

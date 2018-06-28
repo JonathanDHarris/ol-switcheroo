@@ -35,7 +35,8 @@ app.get('/', asyncMiddleware(async (req, res) => {
 	
 	const navigationData = {
 		subredditLink,
-		after
+		after,
+		commentLink: req.query.comments
 	}
 	
 	const children = responseJson.data.children;
