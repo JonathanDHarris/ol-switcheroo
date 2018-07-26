@@ -71,9 +71,17 @@ app.get('/', asyncMiddleware(async (req, res) => {
 	const comments = commentsJson
 		? commentsJson[1].data.children
 		: []
-		
+	
 	const selfText = commentsJson
 		? commentsJson[0].data.children[0].data.selftext_html
+		: null
+		
+	const title = commentsJson
+		? commentsJson[0].data.children[0].data.title
+		: null
+		
+	const author = commentsJson
+		? commentsJson[0].data.children[0].data.author
 		: null
 		
 	unescapeHtml(comments);
@@ -87,6 +95,8 @@ app.get('/', asyncMiddleware(async (req, res) => {
 		subredditLink,
 		after,
 		selfText: unescape(selfText),
+		title,
+		author,
 		comments,
 		navigationData,
 		maxCommentDepth,
