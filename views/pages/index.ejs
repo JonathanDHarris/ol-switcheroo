@@ -5,7 +5,7 @@
 	</head>
 
 	<body class="container">	
-		<% renderComments = (comments, navigationData, depth=1) => { %>
+		<% renderComments = (comments, navigationData, op, depth=1) => { %>
 			<% if (comments && depth <= maxCommentDepth) { %>
 				<% margin = parseInt(depth, 10) * 10; %>
 				<div style="margin-left:<%= margin %>px">
@@ -16,11 +16,16 @@
 							<div id="comment_<%= comment.data.id %>" onClick="event.stopPropagation(); toggleComment('<%= comment.data.id %>')">
 							<div style="background-color:<%= backgroundColor %>">
 							<%- comment.data.body_html %>
-
-							<i><%= comment.data.author %></i>
+							<% if (comment.data.author === op) { %>
+								<div style="background-color: yellow;">
+							<% } else {%>
+								<div>
+							<% } %>
+								<i><%= comment.data.author %></i>
+							</div>
 							</div>
 							<% if (comment.data.replies && comment.data.replies.data && comment.data.replies.data.children) { %>
-								<% renderComments(comment.data.replies.data.children, navigationData, depth+1) %>
+								<% renderComments(comment.data.replies.data.children, navigationData, op, depth+1) %>
 							<% } %>
 							</div>
 							<div style="background-color:<%= backgroundColor %>; display:none" id="show_<%= comment.data.id %>" onClick="event.stopPropagation(); toggleComment('<%= comment.data.id %>')">Show comment</div>
@@ -63,12 +68,12 @@
 					<%- title %>
 				</h3>
 				<%- selfText %>
-				<div>
+				<div style="background-color: yellow;">
 					<i>
 						<%- author %>
 					</i>
 				</div>
-				<% renderComments(comments, navigationData) %>
+				<% renderComments(comments, navigationData, author) %>
 			</td>
 		</table>
 	</body>`
